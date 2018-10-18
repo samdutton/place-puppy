@@ -1,5 +1,5 @@
 const session = require('express-session')
-const MongoStore = require('connect-mongo')(session);
+const MongoStore = require('connect-mongo')(session)
 const User = require("../models/user.model.js")
 const bcrypt = require('bcrypt')
 const saltRounds = 10
@@ -7,6 +7,10 @@ const cookieParser = require('cookie-parser')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const Sessions = mongoose.model('sessions', new Schema())
+
 
 module.exports = {
     login: (req, res) => {
@@ -55,8 +59,11 @@ module.exports = {
                     if (response) {
                         // add user to session
                         req.session.user = obj
-                        log('added to session')
+                        log('user added to session')
+
+                        // console.log(a)
                         log('user session', req.session.user)
+
                         req.flash('success', 'Login successfull')
                         return res.redirect('add')
                     } else {
@@ -69,7 +76,13 @@ module.exports = {
             })
         })
     },
+    manageStore: (req,res) => {
+
+    },
     loginDisplay: (req, res) => {
+        Sessions.find({}, (err, data) =>{
+            console.log('data', data[0])
+        })
         return res.render('login', {
             method: 'POST',
             action: '/login',

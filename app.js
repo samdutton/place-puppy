@@ -53,7 +53,10 @@ app.use(session({
     // secure: false,
     // maxAge: new Date(Date.now() + 1),
     secret: process.env.SECRET,
-    store: new MongoStore({mongooseConnection: db}),
+    store: new MongoStore({
+        mongooseConnection: db,
+        stringify: false
+    }),
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 60000 }
@@ -87,4 +90,5 @@ app.use(function(err, req, res, next) {
     res.render('error')
 })
 
-module.exports = app
+module.exports.app = app
+module.exports.db =  db
