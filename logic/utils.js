@@ -240,13 +240,13 @@ function filterImages(stubsArr, dir) {
 }
 function cloudinaryUploader(image) {
     return new Promise((resolve, reject) => {
-        cloudinary.v2.uploader.upload(image, {
-            timeout: 10000000
-        }, (err, result) => {
+        console.log('CCC', cloudinary.v2.uploader)
+        cloudinary.v2.uploader.upload(image, (err, result) => {
             if (err) {
                 error('Error in the cloudinary loader', err)
                 reject(error)
             } else {
+                console.log('res')
                 log('result', result)
                 resolve(result)
             }

@@ -422,9 +422,7 @@ describe('images controller', function() {
             let log = sinon.spy()
             // inject log
             rwSUT.__set__('log', log)
-            after(function() {
-                // getCache.restore()
-            })
+            
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
             // check log is called
             assert(log.calledWith('Serving from : cache'))

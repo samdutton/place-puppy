@@ -93,7 +93,7 @@ describe('utils', function() {
             }).to.throw(TypeError, 'Incorrect input: Needs to be a string')
         })
     })
-    describe.skip('cloudinaryUploaer()', function(){
+    describe.only('cloudinaryUploaer()', function(){
         let stub
         beforeEach(function() {
             stub = sinon.stub(cloudinary.v2.uploader, 'upload').resolves('hello')
@@ -121,17 +121,17 @@ describe('utils', function() {
             mock.restore()
             stub.restore()
         })
-        it('returns a promise because it has a .then function', function(){
-            console.log(stub.resolves('hello'))
+        it.only('returns a promise because it has a .then function', function(){
+
             let result = SUT.cloudinaryUploader('./path/to/some.png')
-            return result.then(res => console.log(res))
-            assert.typeOf(result.then, 'function')
+            // console.log(result)
+            return result.then(res => {
+                // console.log(res)
+            })
+
         })
         it('returns a promise because it has a .then function', function(){
             let result = SUT.cloudinaryUploader('./path/to/some.png')
-            return result.then(res => {
-                console.log(res)
-            })
         })
     })
 })
