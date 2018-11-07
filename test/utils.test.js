@@ -7,6 +7,8 @@ const sinon = require('sinon')
 const rewire = require('rewire')
 const rwSUT = rewire('../logic/utils')
 const cloudinary = require('cloudinary')
+const https = require('https')
+const nock = require('nock')
 
 describe('utils', function() {
     describe('filterImages()', function() {
@@ -93,7 +95,7 @@ describe('utils', function() {
             }).to.throw(TypeError, 'Incorrect input: Needs to be a string')
         })
     })
-    describe.only('cloudinaryUploaer()', function(){
+    describe('cloudinaryUploaer()', function(){
         let stub
         beforeEach(function() {
             stub = sinon.stub(cloudinary.v2.uploader, 'upload').resolves('hello')
@@ -121,7 +123,7 @@ describe('utils', function() {
             mock.restore()
             stub.restore()
         })
-        it.only('returns a promise because it has a .then function', function(){
+        it('returns a promise because it has a .then function', function(){
 
             let result = SUT.cloudinaryUploader('./path/to/some.png')
             // console.log(result)
@@ -132,6 +134,20 @@ describe('utils', function() {
         })
         it('returns a promise because it has a .then function', function(){
             let result = SUT.cloudinaryUploader('./path/to/some.png')
+        })
+    })
+    describe('promiseTester()', function(){
+        // beforeEach(function(){
+        //     sinon.stub(https,'get').resolves('hello')
+        // })
+        // rwSUT.__set__('cloudinary.v2.uploader.upload', stub)
+        // afterEach(function(){
+        //     https.get.restore()
+        // })
+        it.skip('stuff', function(){
+            nock('https://www.google.com/').get('/').reply(200, 'what what')
+            let result = SUT.promiseTester('https://www.google.com/')
+            return result.then(res => console.log(res))
         })
     })
 })

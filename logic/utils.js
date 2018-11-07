@@ -7,6 +7,7 @@ const url = require('url')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
+const https = require('https')
 
 module.exports = {
     fullSeed: fullSeed,
@@ -20,7 +21,8 @@ module.exports = {
     sessionCheck: sessionCheck,
     displayCloud: displayCloud,
     singleSeed: singleSeed,
-    checkAllDigits: checkAllDigits
+    checkAllDigits: checkAllDigits,
+    promiseTester: promiseTester
 }
 function checkAllDigits(pathName) {
     // all before the x
@@ -240,7 +242,7 @@ function filterImages(stubsArr, dir) {
 }
 function cloudinaryUploader(image) {
     return new Promise((resolve, reject) => {
-        console.log('CCC', cloudinary.v2.uploader)
+        // console.log('CCC', cloudinary.v2.uploader)
         cloudinary.v2.uploader.upload(image, (err, result) => {
             if (err) {
                 error('Error in the cloudinary loader', err)
@@ -252,6 +254,26 @@ function cloudinaryUploader(image) {
             }
         })
 
+    })
+}
+function promiseTester(input) {
+    return new Promise((resolve, reject) => {
+        https.get(input, (res) => {
+            console.log('inside')
+            res.setEncoding('utf8');
+            let rawData = '';
+            res.on('data', (chunk) => { rawData += chunk; });
+            res.on('end', () => {
+            try {
+              // const parsedData = JSON.parse(rawData);
+              // console.log('resolve')
+              resolve(rawData)
+            } catch (e) {
+                reject('REJECTIONS')
+              console.error('error', e);
+            }
+        })
+        })
     })
 }
 https : //stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url/22648406#22648406

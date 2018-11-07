@@ -17,7 +17,12 @@ const cloudinary = require('cloudinary')
 const Image = mongoose.models.Image || require('../models/image.model.js')
 const nock = require('nock')
 const Stream = require('stream')
+const streamTransform = require('stream').Transform
 const https = require('https')
+
+
+const rwSUT2 = rewire('../logic/utils')
+
 // create a fake image instance
 let fakeImage = image = new Image({
     id: '1234',
@@ -422,7 +427,7 @@ describe('images controller', function() {
             let log = sinon.spy()
             // inject log
             rwSUT.__set__('log', log)
-            
+
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
             // check log is called
             assert(log.calledWith('Serving from : cache'))
@@ -440,24 +445,38 @@ describe('images controller', function() {
                 https.get.restore()
             })
             it('returns a promise', function() {
-                //  let mockStream = new Stream.Transform()
-                //   stub get
-                // httpGet = sinon.stub(https, 'get').resolves(mockStream)
+                 let mockStream = new Stream.Transform()
                 let result = rwSUT.httpCall('fakePng.png', '100x100')
                 let promise = result instanceof Promise
                 expect(promise).to.be.true
             })
 
         })
-        describe.skip('httpCall make mock server call', function() {
-            nock('https://fake-src.png').get('/').reply(200, 'what what')
+        describe('httpCall make mock server call', function() {
             it('mocks server', function() {
+                // pass in streamTransform like original
+                let mockStream = new streamTransform()
+                // make mock call- return a stream
+                nock('https://fake-src.png').get('/').reply(200, { stream: mockStream })
+                // result is array of stream and the res
                 let result = rwSUT.httpCall('https://fake-src.png', '100x100')
                 return result.then(res => {
-                    // check length of string passed into Nock
-                    // expect(res._readableState.length).to.equal(9)
+                    // obj with path/buffer for cache
+                    let obj = res[1][0]
+                    // should have path/buffer, format/jpg
+                    expect(obj).to.have.all.keys('100x100', 'format')
                 })
             })
+            // it('mocks server', function() {
+            //     // make mock call
+            //     nock('https://fake-src.png').get('/').reply(200, 'what what')
+            //     let result = rwSUT.httpCall('https://fake-src.png', '100x100')
+            //     // should return what what
+            //     return result.then(res => {
+            //         // check length of string passed into Nock
+            //         expect(res[0]._readableState.length)
+            //     })
+            // })
 
         })
     })
