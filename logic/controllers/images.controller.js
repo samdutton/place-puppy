@@ -4,19 +4,26 @@ const Image = mongoose.models.Image || require('../models/image.model.js')
 const url = require('url')
 const multer = require('multer')
 const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
+    destination: function (req, file, cb) {
         cb(null, '/uploads')
     },
-    filename: function(req, file, cb) {
+    filename: function (req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + file.originalname)
     }
 })
-const upload = multer({storage: storage})
+const upload = multer({
+    storage: storage
+})
 const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
 const cloudinary = require('cloudinary')
-const {cloudinaryUploader, extractDims, sessionCheck, checkAllDigits} = require('../utils')
+const {
+    cloudinaryUploader,
+    extractDims,
+    sessionCheck,
+    checkAllDigits
+} = require('../utils')
 const https = require('https')
 const streamTransform = require('stream').Transform
 const Stream = require('stream')
@@ -25,13 +32,12 @@ const log = debug('app:log')
 const error = debug('app:error')
 let closureCache
 
-
 function add(req, res) {
     // get file
     let file = req.file
     if (file)
         log('file pathname', req.file.path)
-        // if no file, kill
+    // if no file, kill
     if (!file) {
         error('No file attached')
         req.flash('info', 'No file attached')
@@ -62,7 +68,7 @@ function add(req, res) {
             path: req.body['route-path']
         })
 
-        fs.unlink(file.path, function(err) {
+        fs.unlink(file.path, function (err) {
             if (err) {
                 error('Unlink error', err)
             }
@@ -120,14 +126,16 @@ function showImage(req, res, quality, strFormat) {
         error('width or height is null')
         throw TypeError('Width or height is null in showImage()')
     }
-    // CACHE
+
     // if quality or format in string, skip the cache
     if (!quality && !strFormat) {
         // if in cache call from cache
-        let currentCache = closureCache()
-        if (getCache(currentCache, pathName)) {
-            log('getCache', currentCache)
-            let index = retreiveBufferIndex(pathName, currentCache)
+        let currentCacheVal = closureCache()
+        if (getCache(currentCacheVal, pathName)) {
+            log('inside')
+            log('getCache', currentCacheVal)
+            console.log('getCache', currentCacheVal)
+            let index = retreiveBufferIndex(pathName, currentCacheVal)
 
             if (index < 0) {
                 error('Error: Indexing of cache is less than zero. Illegal index.')
@@ -135,18 +143,21 @@ function showImage(req, res, quality, strFormat) {
                 return
             }
             // get by array index and key name
-            let buffer = currentCache[index][pathName]
+            let buffer = currentCacheVal[index][pathName]
             // Initiate the source
             var bufferStream = new Stream.PassThrough()
             // Write your buffer
             bufferStream.end(new Buffer(buffer))
             log('Serving from : cache')
             // get format from imgObj
-            let format = currentCache[index]['format']
+            let format = currentCacheVal[index]['format']
             // resize
-            return resize(bufferStream, width, height, format).pipe(res)
+            // return array - check buffer output in tests
+            console.log('cache return')
+            return [resize(bufferStream, width, height, format).pipe(res), bufferStream]
         }
     }
+    // CACHE
     let preSets = [
         '100x100',
         '150x150',
@@ -166,12 +177,16 @@ function showImage(req, res, quality, strFormat) {
         // if one of the preset images, send this
         if (preSets.includes(pathName)) {
 
-            resolve(Image.findOne({path: pathName}).exec())
+            resolve(Image.findOne({
+                path: pathName
+            }).exec())
         } else {
+            console.log('test')
             // else random
             // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
             // Get the count of all users
-            Image.count().exec(function(err, count) {
+            Image.count().exec(function (err, count) {
+
                 if (err) {
                     error(err)
                     req.flash('error', `A networking error occured: ${err}`)
@@ -183,6 +198,7 @@ function showImage(req, res, quality, strFormat) {
             })
         }
     }).then(img => {
+
         // check not null
         if (!img) {
             error('This data does not exist')
@@ -211,13 +227,17 @@ function showImage(req, res, quality, strFormat) {
         res.type(`image/${format || 'jpg'}`)
         // call url from cloudinary
         httpCall(img.src, pathName).then(array => {
-            // val one is stream2
+            // val one is stream
             let stream = array[0]
             // val 2 is cache
             let cache = array[1]
             // pass to resize func and pipe to res
             ///// strFormat needs to be added after debug
-            return resize(stream, width, height, format).pipe(res)
+            console.log('CACHE', cache)
+            // console.log('stream', stream)
+            console.log(stream._readableState.buffer)
+
+            return [resize(stream, width, height, format).pipe(res), stream]
         }).catch(err => {
             error("An error in the promise ending show", err)
             res.status(404).send(err)
@@ -244,9 +264,9 @@ function httpCall(src, pathname) {
                     // read data with.read()
                     data = data.read()
                     // push to cache
-                    https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
-                    // Initiate the source
-                    var bufferStream = new Stream.PassThrough()
+                    https: //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
+                        // Initiate the source
+                        var bufferStream = new Stream.PassThrough()
 
                     // Write your buffer
                     bufferStream.end(new Buffer(data))
@@ -274,12 +294,13 @@ function resize(stream, width, height, format) {
         error('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
         throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
     }
-    var transformer = sharp().resize(width, height).on('info', function(info) {
+    var transformer = sharp().resize(width, height).on('info', function (info) {
         log('Resize: okay')
     })
     return stream.pipe(transformer)
 
 }
+
 function setImageQuality(urlStr, quality) {
     if (typeof urlStr !== 'string' || typeof quality !== 'string') {
         error('setImageQuality error: functions params must both be strings')
@@ -299,23 +320,24 @@ function setImageQuality(urlStr, quality) {
 
     let insertStr = ``
     switch (quality) {
-        case 'high':
-            insertStr = `q_auto:best`
-            break
-        case 'good':
-            insertStr = `q_auto:good`
-            break
-        case 'eco':
-            insertStr = `q_auto:eco`
-            break
-        case 'low':
-            insertStr = `q_auto:low`
-            break
-        default:
-            insertStr = 'q_auto'
+    case 'high':
+        insertStr = `q_auto:best`
+        break
+    case 'good':
+        insertStr = `q_auto:good`
+        break
+    case 'eco':
+        insertStr = `q_auto:eco`
+        break
+    case 'low':
+        insertStr = `q_auto:low`
+        break
+    default:
+        insertStr = 'q_auto'
     }
     return `${before}/${insertStr}${after}`
 }
+
 function showImages(req, res) {
     // LOGIN REQUIRED
     if (!sessionCheck(req, res))
@@ -324,7 +346,9 @@ function showImages(req, res) {
     let promise = Image.find({})
     return promise.then(imgs => {
         log(`imgs`, imgs)
-        res.render('images', {imgs: imgs})
+        res.render('images', {
+            imgs: imgs
+        })
     }).catch(err => {
         error(`An err occured: ${err}`)
         req.flash('error', 'An unknown catch error occured.')
@@ -351,6 +375,7 @@ function imageFormat(imgSrc) {
         return false
     }
 }
+
 function addFile(req, res) {
     // no access without login
 
@@ -403,6 +428,7 @@ function addFile(req, res) {
 
     })
 }
+
 function replaceUrlExt(imgUrl, newExt) {
     if (newExt !== 'jpg' && newExt !== 'png' && newExt !== 'gif' && newExt !== 'jpeg') {
         error('Extension is not valid to replace url. Only png, jpg, and gif.')
@@ -417,37 +443,37 @@ function replaceUrlExt(imgUrl, newExt) {
 }
 // to call cache, call func without args
 // stores imgs cache in a closure
-closureCache = (function(){
-	let imgs = []
-	return function(pathname, buffer, format){
-        // getter
-    if(arguments.length <= 0){
+closureCache = (function () {
+    let imgs = []
+    return function (pathname, buffer, format) {
+        // if not args given to func- getter
+        if (arguments.length <= 0) {
+            return imgs
+        }
+        // setter
+        let imgObj = {}
+        imgObj[pathname] = buffer
+        // add format to obj
+        imgObj['format'] = format
+        // console.log('imgObj', imgObj)
+        imgs.push(imgObj)
+        // if more than 4, shift one off
+        if (imgs.length > 4) {
+            imgs.shift()
+            log('shifting off cache array')
+        }
+        // if this is called, image is coming from cloud
         return imgs
     }
-    // setter
-	let imgObj = {}
-	imgObj[pathname] = buffer
-    // add format to obj
-    imgObj['format'] = format
-	// console.log('imgObj', imgObj)
-    imgs.push(imgObj)
-    // if more than 4, shift one off
-    if (imgs.length > 4) {
-        imgs.shift()
-        log('shifting off cache array')
-    }
-    // if this is called, image is coming from cloud
-	return imgs
-	}
 })();
 
 // checks if pathname is inside the cache
 // take arr of objects with path/buffer key vals, + pathname
 function getCache(arr, pathname) {
-    if(!Array.isArray(arr)){
+    if (!Array.isArray(arr)) {
         throw TypeError('First input of getCache must be an array.')
     }
-    if(typeof pathname !== 'string'){
+    if (typeof pathname !== 'string') {
         throw TypeError('Second input of getCache must be a string.')
     }
     // make arr of only keys
