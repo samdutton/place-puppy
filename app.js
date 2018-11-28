@@ -6,7 +6,9 @@ const logger = require('morgan')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const multer = require('multer')
-const upload = multer({dest: 'uploads/'})
+const upload = multer({
+    dest: 'uploads/'
+})
 const flash = require('express-flash')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')(session)
@@ -15,8 +17,6 @@ const MongoStore = require('connect-mongo')(session)
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
-
-log('ENV', process.env.NODE_ENV)
 
 var index = require('./routes/index')
 var users = require('./routes/users')
@@ -31,7 +31,7 @@ mongoose.connect(mongoDB)
 var db = mongoose.connection
 db.on('error', console.error.bind(console, 'MongoDB connection error'))
 log('db connected')
-db.once('open', function() {
+db.once('open', function () {
     // we're connected!
 })
 
@@ -45,7 +45,9 @@ app.locals.title = 'placepuppy'
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(logger('dev'))
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.urlencoded({
+    extended: true
+}))
 
 app.use(cookieParser(''))
 app.use(session({
@@ -53,13 +55,15 @@ app.use(session({
     // secure: false,
     // maxAge: new Date(Date.now() + 1),
     secret: process.env.SECRET,
-    store: new MongoStore({mongooseConnection: db}),
+    store: new MongoStore({
+        mongooseConnection: db
+    }),
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 60000 }
+    cookie: {
+        maxAge: 60000
+    }
 }))
-
-
 
 app.use(flash())
 
@@ -68,19 +72,18 @@ app.use('/', index)
 app.use('/users', users)
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     var err = new Error('Not Found')
     err.status = 404
     next(err)
 })
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
     // set locals, only providing error in development
     res.locals.message = err.message
-    res.locals.error = req.app.get('env') === 'development'
-        ? err
-        : {}
+    res.locals.error = req.app.get('env') === 'development' ?
+        err : {}
 
     // render the error page
     res.status(err.status || 500)

@@ -1,5 +1,6 @@
 const SUT = require('../logic/utils')
 const chai = require('chai')
+const chaiAsPromised = require('chai-as-promised')
 const { assert } = chai
 const { expect } = chai
 const mock = require('mock-fs')
@@ -144,10 +145,21 @@ describe('utils', function() {
         // afterEach(function(){
         //     https.get.restore()
         // })
-        it.skip('stuff', function(){
-            nock('https://www.google.com/').get('/').reply(200, 'what what')
+        it.only('stuff', function(){
+            nock('https://www.google.com/').get('/').reply(400, 'HELLO')
             let result = SUT.promiseTester('https://www.google.com/')
+            console.log(result)
+            return result.then(res => res === 'HELLO')
+            // return result.should.be.rejectedWith("REJECTIONS")
+
+        })
+        it('stuff', function(){
+            // nock('https://www.google.com/').get('/').reply(200, 'his')
+            let result = SUT.promiseTester('https://httpstat.us/404')
+            console.log('result',result)
             return result.then(res => console.log(res))
+            // return result.should.    be.rejectedWith("REJECTIONS")
+
         })
     })
 })

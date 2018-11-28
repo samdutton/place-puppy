@@ -453,7 +453,7 @@ describe('images controller', function() {
 
         })
         describe('httpCall make mock server call', function() {
-            it('mocks server', function() {
+            it('makes call and returns buffer object', function() {
                 // pass in streamTransform like original
                 let mockStream = new streamTransform()
                 // make mock call- return a stream
@@ -467,17 +467,21 @@ describe('images controller', function() {
                     expect(obj).to.have.all.keys('100x100', 'format')
                 })
             })
-            // it('mocks server', function() {
-            //     // make mock call
-            //     nock('https://fake-src.png').get('/').reply(200, 'what what')
-            //     let result = rwSUT.httpCall('https://fake-src.png', '100x100')
-            //     // should return what what
-            //     return result.then(res => {
-            //         // check length of string passed into Nock
-            //         expect(res[0]._readableState.length)
-            //     })
-            // })
+            it('returns 400 status and rejects promise', function() {
+                let mockStream = new streamTransform()
+                // make mock call
+                nock('https://fake-src.png').get('/').reply(401,{ stream: mockStream } )
+                let result = rwSUT.httpCall('https://fake-src.png', '100x100')
+                // should return what what
+                return result.then(res => {
+                    // check length of string passed into Nock
+                    console.log(res)
 
+                })
+                // expect(function() {
+                //     SUT.getCache(44, '100x100')
+                // }).to.throw(TypeError, 'First input of getCache must be an array.')
+            })
         })
     })
     describe('getCache()', function() {

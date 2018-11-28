@@ -260,7 +260,7 @@ function httpCall(src, pathname) {
                 error(`An http error occured`, response.statusCode)
                 reject('promise in http.get rejected')
             }
-        })
+        })    // https://thecodebarbarian.com/unhandled-promise-rejections-in-node.js.html
     })
 }
 // returns an object - stream piped to res

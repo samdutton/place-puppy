@@ -258,21 +258,28 @@ function cloudinaryUploader(image) {
 }
 function promiseTester(input) {
     return new Promise((resolve, reject) => {
+
         https.get(input, (res) => {
-            console.log('inside')
-            res.setEncoding('utf8');
-            let rawData = '';
-            res.on('data', (chunk) => { rawData += chunk; });
-            res.on('end', () => {
-            try {
-              // const parsedData = JSON.parse(rawData);
-              // console.log('resolve')
+            console.log(console.log(res.statusCode))
+
+            if (res.statusCode === 200) {
+                res.setEncoding('utf8');
+                let rawData = '';
+                res.on('data', (chunk) => { rawData += chunk; });
+                res.on('end', () => {
+            // try {
+            //   // const parsedData = JSON.parse(rawData);
+            //   console.log('resolve')
               resolve(rawData)
-            } catch (e) {
+            // } catch (e) {
+            //   console.error('error', e);
+            //   reject('REJECTIONS')
+            // }
+                })
+            } else {
                 reject('REJECTIONS')
-              console.error('error', e);
+
             }
-        })
         })
     })
 }
