@@ -10,7 +10,6 @@ const upload = multer({ dest: 'uploads/' })
 const flash = require('express-flash')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')(session)
-// const helmet = require('helmet')
 
 const debug = require('debug')
 const log = debug('app:log')
@@ -21,7 +20,6 @@ log('ENV', process.env.NODE_ENV)
 var index = require('./routes/index')
 
 var app = express()
-// app.use(helmet())
 // / MONGO
 var mongoose = require('mongoose')
 var mongoDB = process.env.DB_URI //
